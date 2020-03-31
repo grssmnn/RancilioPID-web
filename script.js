@@ -7,6 +7,9 @@ $(function() {
     var pidKpData = localStorage.getItem("pidKpData") == null ? [] : JSON.parse(localStorage.getItem('pidKpData'));
     var pidKiData = localStorage.getItem("pidKiData") == null ? [] : JSON.parse(localStorage.getItem('pidKiData'));
     var pidKdData = localStorage.getItem("pidKdData") == null ? [] : JSON.parse(localStorage.getItem('pidKdData'));
+    var outputData = localStorage.getItem("outputData") == null ? [] : JSON.parse(localStorage.getItem('outputData'));
+
+    removeOldEntries(60);
 
     /**
      * Init Chart
@@ -59,6 +62,15 @@ $(function() {
                 yAxisID: 'pidAxis',
                 hidden: true,
             },
+            {
+                "label": "output",
+                "backgroundColor": "rgba(255,0,0,0.5)",
+                "borderColor": "rgba(255,0,0,0.5)",
+                "fill": false,
+                "data": outputData,
+                yAxisID: 'outputAxis',
+                hidden: true,
+            },
         ]
     };
     var options = {
@@ -67,7 +79,8 @@ $(function() {
                     id: 'tempAxis',
                     position: 'left',
                     ticks: {
-                        "beginAtZero": true
+                        "beginAtZero": true,
+                        suggestedMax: 100
                     }
                 },
                 {
@@ -75,6 +88,14 @@ $(function() {
                     position: 'right',
                     ticks: {
                         beginAtZero: true
+                    }
+                },
+                {
+                    id: 'outputAxis',
+                    position: 'right',
+                    ticks: {
+                        beginAtZero: true,
+                        suggestedMax: 900
                     }
                 }
             ],
@@ -92,53 +113,75 @@ $(function() {
         options: options
     });
 
+    var socket = new WebSocket("ws://192.168.0.17:81");
+    socket.onmessage = function(event) {
+        try {
+            var msg = JSON.parse(event.data);
+            if (msg.cmd == "post") {
+                if (msg.id == "chartData") {
+                    console.log(msg.data);
+                    updateChartAndData(msg.data);
+                    removeOldEntries(60 * 5); // 30 minutes
+                    myChart.update();
+                }
+            }
+        } catch (e) {
+            console.log(e);
+            //console.log(event.data);
+        }
+    }
 
-
-    /**
-     * Add randomly dummy data
-     */
-    var last = 100;
     setInterval(function() {
+        var msg = {
+            "cmd": "get",
+            "id": "chartData"
+        }
+        socket.send(JSON.stringify(msg));
+    }, 3000);
+
+    function updateChartAndData(data) {
         var date = new Date();
-        var a = {
+        var temperature = {
             x: date,
-            y: last * (getRandomInt(10) + 96) / 100
+            y: data.temperature
         };
-        var b = {
+        var controlTemperature = {
             x: date,
-            y: 100
+            y: data.controlTemperature
         };
-        var p = {
+        var pidKp = {
             x: date,
-            y: getRandomInt(10) + 10
-        }
-        var i = {
+            y: data.p
+        };
+        var pidKi = {
             x: date,
-            y: getRandomInt(10) + 10
-        }
-        var d = {
+            y: data.i
+        };
+        var pidKd = {
             x: date,
-            y: getRandomInt(10) + 10
-        }
+            y: data.d
+        };
+        var output = {
+            x: date,
+            y: data.output
+        };
 
-        myChart.data["datasets"][0].data.push(a);
-        myChart.data["datasets"][1].data.push(b);
+        myChart.data["datasets"][0].data.push(temperature);
+        myChart.data["datasets"][1].data.push(controlTemperature);
 
-        myChart.data["datasets"][2].data.push(p);
-        myChart.data["datasets"][3].data.push(i);
-        myChart.data["datasets"][4].data.push(d);
+        myChart.data["datasets"][2].data.push(pidKp);
+        myChart.data["datasets"][3].data.push(pidKi);
+        myChart.data["datasets"][4].data.push(pidKd);
 
+        myChart.data["datasets"][5].data.push(output);
 
         localStorage.setItem("temperatureData", JSON.stringify(temperatureData));
         localStorage.setItem("controlTemperatureData", JSON.stringify(controlTemperatureData));
         localStorage.setItem("pidKpData", JSON.stringify(pidKpData));
         localStorage.setItem("pidKiData", JSON.stringify(pidKiData));
         localStorage.setItem("pidKdData", JSON.stringify(pidKdData));
-
-        removeOldEntries(60);
-
-        myChart.update();
-    }, 3000);
+        localStorage.setItem("outputData", JSON.stringify(outputData));
+    }
 
     /**
      * Returns random int number for dummy data.
@@ -162,6 +205,7 @@ $(function() {
                 pidKpData.shift();
                 pidKiData.shift();
                 pidKdData.shift();
+                outputData.shift();
             } else
                 break;
         }
