@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- META -->
+    <title>Rancilio PID Web App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="css/kickstart.css" media="all" />
+    <link rel="stylesheet" type="text/css" href="style.css" media="all" />
+
+    <!-- Javascript -->
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.bundle.min.js"></script>
+    <script type="text/javascript" src="js/script.js"></script>
+</head>
+
+<body>
+    <div class="grid">
+        <div class="col_12" style="margin-top:20px;">
+            <h1 class="center">
+                <p><img src="img/coffee.png" alt="Coffee" width="100" /></p>
+                Rancilio PID
+            </h1>
+        </div>
+        <div class="grid">
+            <div class="col_12">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="col_3">
+                <canvas data-type="linear-gauge" data-width="160" data-height="600" data-border-radius="20" data-borders="0" data-bar-stroke-width="20" data-minor-ticks="10" data-major-ticks="0,10,20,30,40,50,60,70,80,90,100" data-value="22.3" data-units="°C" data-color-value-box-shadow="false"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- End Grid -->
+</body>
+
+</html>
